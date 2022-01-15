@@ -5,7 +5,7 @@
 
 ## Table of Contents
 
-[Text](link)
+[Text](#first-approach)
 [Text](link)
 [Text](link)
 [Text](link)
