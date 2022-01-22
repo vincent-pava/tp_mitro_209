@@ -1,17 +1,11 @@
-import snap
-l_edges = [[1, 2, 4, 5], [0, 2, 3, 4, 5], [0, 1, 4, 5], [1, 6, 7, 8, 9],
-           [0, 1, 2, 5, 6], [0, 1, 2, 4], [3, 4], [3], [3], [3]]
-
-G1 = (10, l_edges)
-
 
 def initialize(g):
     '''This function initializes the different data structures used in the algorithm
     delta = list of lists containing the vertices of a certain degree
     l_delta = list of the lengths of the lists in delta
     aux = list with for each vertex [deg, position] where deg is its current degree and position is its position in the degree list in delta'''
-    l_edges = g[1]
-    n = g[0]
+    l_edges = g
+    n = len(l_edges)
     delta = [[] for i in range(n)]
     degree_count = [0 for i in range(n)]
     delta_length = []
@@ -31,8 +25,8 @@ def initialize(g):
             aux[delta[i][j]] = [i, j]
     # divide by 2 times the number of vertices because each edge is counted twice as the graph is not oriented
     n_edges //= 2
-    n_vertexes = g[0]
-    densest = n_edges / g[0]
+    n_vertexes = n
+    densest = n_edges / n
     return delta, delta_length, n_edges, n_vertexes, densest, aux, l_edges
 
 
@@ -67,30 +61,7 @@ def update_delta(delta, vertex, aux, l_edges, delta_length, kept_vertices):
     return delta, delta_length, edges_deleted, kept_vertices
 
 
-def densest_approximation(g):
-    delta, delta_length,  n_edges, n, densest, aux, l_edges = initialize(
-        g)
-    n_vertices = n
-    kept_vertices = [True for i in range(n)]
-    h = kept_vertices
-    index = 0
-    for i in range(n-1):
-        v, index = choose_min_degree(delta, index)
-        index -= 1
-        delta, delta_length, edges_deleted, kept_vertices = update_delta(
-            delta, v, aux, l_edges, delta_length, kept_vertices)
-        tab = kept_vertices.copy()
-        n_edges -= edges_deleted
-        n_vertices -= 1
-        new_density = n_edges / n_vertices
-        print(new_density, densest)
-        if new_density > densest:
-            densest = new_density
-            h = tab
-    return rebuild_graph(h, l_edges, n)
-
-
-def rebuild_graph(bool_tab, l_edges, n):
+def rebuild_graph(bool_tab, l_edges, n, max_density):
     new_l_edges = [[] for i in range(n)]
     for i in range(n):
         if bool_tab[i]:
@@ -98,7 +69,29 @@ def rebuild_graph(bool_tab, l_edges, n):
             for j in range(k):
                 if bool_tab[l_edges[i][j]]:
                     new_l_edges[i].append(l_edges[i][j])
-    return new_l_edges
+    return new_l_edges, max_density
 
 
-print(densest_approximation(G1))
+def densest_approximation(g):
+    delta, delta_length,  n_edges, n, densest, aux, l_edges = initialize(
+        g)
+    n_vertices = n
+    kept_vertices = [True for i in range(n)]
+    h = kept_vertices.copy()
+    index = 0
+    for i in range(n):
+        v, index = choose_min_degree(delta, index)
+        index -= 1
+        delta, delta_length, edges_deleted, kept_vertices = update_delta(
+            delta, v, aux, l_edges, delta_length, kept_vertices)
+        tab = kept_vertices.copy()
+        n_edges -= edges_deleted
+        n_vertices -= 1
+        if n_vertices == 0:
+            new_density = 0
+        else:
+            new_density = n_edges / n_vertices
+        if new_density > densest:
+            densest = new_density
+            h = tab
+    return rebuild_graph(h, l_edges, n, densest)
